@@ -6,231 +6,284 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>외대 페르시아어 단어장</title>
-    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 앱 스타일 기본 세팅 */
+        :root {
+            --primary-color: #005BAA; /* 외대 청색 */
+            --accent-color: #FF8c00;  /* 포인트 오렌지 */
+            --bg-color: #f0f2f5;
+        }
+
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #f0f2f5;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden; /* 스크롤 방지 */
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 상단 헤더 */
+        /* 공통 헤더 */
         header {
-            background: #005BAA; /* 외대 상징색 느낌 */
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: bold;
+            background: var(--primary-color);
+            color: white; padding: 15px; text-align: center;
+            font-weight: bold; font-size: 1.1rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* 메인 카드 영역 */
-        main {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            perspective: 1000px; /* 3D 효과 */
-        }
-
-        /* 플래시카드 디자인 */
-        .card-container {
-            width: 100%;
-            max-width: 350px;
-            height: 400px;
             position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s;
-            cursor: pointer;
+            z-index: 10;
+        }
+        .home-btn {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; font-size: 1.2rem; display: none; /* 홈에서는 안 보임 */
         }
 
-        .card-container.flipped {
-            transform: rotateY(180deg);
+        /* 화면 컨테이너 (페이지 전환 효과용) */
+        .screen {
+            flex: 1; display: none; /* 기본적으로 숨김 */
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; overflow-y: auto;
         }
+        .screen.active { display: flex; } /* 활성화된 화면만 보임 */
 
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: white;
-            text-align: center;
+        /* [홈 화면] 메뉴 버튼들 */
+        .menu-btn {
+            width: 100%; max-width: 300px; padding: 20px; margin: 10px 0;
+            border: none; border-radius: 15px;
+            background: white; color: #333;
+            font-size: 1.1rem; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
         }
+        .menu-btn:active { transform: scale(0.98); background: #f8f9fa; }
+        .menu-btn i { font-size: 1.5rem; color: var(--primary-color); }
 
-        /* 앞면 (페르시아어) */
-        .card-front {
-            background: white;
-            color: #333;
+        /* [학습 화면] 플래시카드 */
+        .card-container {
+            width: 100%; max-width: 350px; height: 380px;
+            position: relative; perspective: 1000px; cursor: pointer;
+            margin-bottom: 20px;
         }
+        .card-inner {
+            width: 100%; height: 100%; position: absolute;
+            transform-style: preserve-3d; transition: transform 0.6s;
+            border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .card-container.flipped .card-inner { transform: rotateY(180deg); }
         
-        .persian-text {
-            font-size: 3rem; /* 페르시아어는 커야 잘 보임 */
-            font-weight: bold;
-            color: #005BAA;
-            margin-bottom: 10px;
+        .card-face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: white; text-align: center;
+        }
+        .card-front { color: var(--primary-color); }
+        .card-back { background: var(--primary-color); color: white; transform: rotateY(180deg); }
+
+        .persian-text { font-size: 2.8rem; font-weight: bold; margin-bottom: 10px; }
+        .korean-text { font-size: 1.6rem; font-weight: bold; padding: 0 20px; word-break: keep-all;}
+        .chapter-badge {
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 10px;
+            font-size: 0.8rem; color: #666;
         }
 
-        /* 뒷면 (한국어) */
-        .card-back {
-            background: #005BAA;
-            color: white;
-            transform: rotateY(180deg);
-        }
-
-        .korean-text {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-
-        /* 하단 컨트롤 바 */
-        .controls {
-            padding: 20px;
-            padding-bottom: 40px; /* 아이폰 하단 바 여백 */
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .btn {
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
+        /* 컨트롤 버튼 */
+        .control-box { display: flex; gap: 15px; width: 100%; max-width: 350px; }
+        .action-btn {
+            flex: 1; padding: 15px; border: none; border-radius: 12px;
+            font-weight: bold; font-size: 1rem; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: 0.2s;
         }
+        .btn-next { background: var(--accent-color); color: white; }
 
-        .btn-next {
-            background: #FF8c00;
-            color: white;
-            flex: 1;
-            max-width: 200px;
-        }
-
-        .btn-next:active {
-            transform: scale(0.95);
-        }
-
-        /* 홈 화면 추가 안내 배너 */
+        /* 설치 배너 */
         #install-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.85);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 0.9rem;
-            display: none; /* JS로 제어 */
-            z-index: 1000;
-        }
-        .close-banner {
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            cursor: pointer;
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(30,30,30,0.9); color: white;
+            padding: 15px 20px; font-size: 0.9rem; box-sizing: border-box;
+            display: none; z-index: 1000; justify-content: space-between; align-items: center;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <i class="fas fa-book"></i> HUFS Persian Voca
+        <i class="fas fa-chevron-left home-btn" onclick="goHome()"></i>
+        <span id="header-title">HUFS Persian</span>
     </header>
 
-    <main>
-        <div class="card-container" id="flashcard" onclick="flipCard()">
-            <div class="card-face card-front">
-                <div style="font-size: 0.9rem; color: #888; margin-bottom: 20px;">Touch to Flip 👆</div>
-                <div class="persian-text" id="word-display">Salam</div>
-                <div style="font-size: 0.9rem; color: #aaa; margin-top: 10px;">(탭하여 뜻 보기)</div>
-            </div>
-            <div class="card-face card-back">
-                <div class="korean-text" id="mean-display">안녕하세요</div>
-            </div>
+    <div id="screen-home" class="screen active">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #333; margin:0;">오늘의 학습</h2>
+            <p style="color: #666;">공부할 모드를 선택하세요</p>
         </div>
-    </main>
 
-    <div class="controls">
-        <button class="btn btn-next" onclick="nextWord()">
-            다음 단어 <i class="fas fa-arrow-right"></i>
+        <button class="menu-btn" onclick="startStudy('all')">
+            <span>🎲 전체 랜덤 학습</span>
+            <i class="fas fa-random"></i>
+        </button>
+
+        <button class="menu-btn" onclick="showChapterSelect()">
+            <span>📚 챕터별 학습</span>
+            <i class="fas fa-list-ul"></i>
+        </button>
+        
+        <button class="menu-btn" style="opacity: 0.6; cursor: not-allowed;">
+            <span>🎮 스피드 게임 (준비중)</span>
+            <i class="fas fa-gamepad"></i>
         </button>
     </div>
 
+    <div id="screen-chapter" class="screen">
+        <h3>챕터를 선택하세요</h3>
+        <div id="chapter-list" style="width: 100%; max-width: 300px;">
+            </div>
+    </div>
+
+    <div id="screen-study" class="screen">
+        <div class="card-container" onclick="flipCard()">
+            <div class="card-inner" id="card-inner">
+                <div class="card-face card-front">
+                    <div class="chapter-badge" id="card-chapter">Ch.1</div>
+                    <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 20px;">Touch to Flip 👆</div>
+                    <div class="persian-text" id="word-display">Ready</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="korean-text" id="mean-display">시작</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-box">
+            <button class="action-btn" style="background:white; color:#666;" onclick="flipCard()">정답 보기</button>
+            <button class="action-btn btn-next" onclick="nextWord()">다음 단어 👉</button>
+        </div>
+    </div>
+
     <div id="install-banner">
-        <div>앱처럼 사용하려면? <br> 하단의 <strong>[공유]</strong> 버튼 누르고 <strong>[홈 화면에 추가]</strong></div>
-        <div class="close-banner" onclick="this.parentElement.style.display='none'">✖</div>
+        <span>앱으로 사용하려면? [공유] > [홈 화면에 추가]</span>
+        <span onclick="this.parentElement.style.display='none'" style="cursor:pointer; font-size:1.2rem;">✖</span>
     </div>
 
     <script>
-        // ============================
-        // [데이터] 여기에 단어를 계속 추가하면 됩니다!
-        // ============================
-        const vocaData = [
-            { w: "Salam", m: "안녕하세요" },
-            { w: "Befarmaid", m: "여기요 / 들어오세요" },
-            { w: "Sefid", m: "흰색" },
-            { w: "Arzan", m: "저렴한" },
-            { w: "Geran", m: "비싼" }
+        // ==========================================
+        // [데이터베이스] 여기에 단어를 쭉~ 추가하세요!
+        // ==========================================
+        const vocaDB = [
+            // 챕터 1
+            { ch: 1, w: "Salam", m: "안녕하세요" },
+            { ch: 1, w: "Befarmaid", m: "여기요 / 들어오세요" },
+            { ch: 1, w: "Khoda hafez", m: "안녕히 가세요" },
+            
+            // 챕터 2
+            { ch: 2, w: "Sefid", m: "흰색" },
+            { ch: 2, w: "Siah", m: "검은색" },
+            { ch: 2, w: "Ghermez", m: "빨간색" },
+
+            // 챕터 3
+            { ch: 3, w: "Arzan", m: "저렴한" },
+            { ch: 3, w: "Geran", m: "비싼" },
+            { ch: 3, w: "Khob", m: "좋은" }
         ];
 
+        // ==========================================
+        // [로직] 기능 구현
+        // ==========================================
+        let currentList = [];
         let currentIndex = 0;
-        const card = document.getElementById('flashcard');
-        const wordDisp = document.getElementById('word-display');
-        const meanDisp = document.getElementById('mean-display');
 
-        // 카드 뒤집기
-        function flipCard() {
-            card.classList.toggle('flipped');
-        }
+        // 1. 화면 전환 함수
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
 
-        // 다음 단어 (랜덤 or 순서대로)
-        function nextWord() {
-            // 카드 뒤집혀있으면 원상복구 후 내용 변경
-            if (card.classList.contains('flipped')) {
-                card.classList.remove('flipped');
-                setTimeout(updateContent, 300); // 카드가 돌아오는 동안 기다림
+            // 홈 버튼 표시 여부
+            const homeBtn = document.querySelector('.home-btn');
+            const title = document.getElementById('header-title');
+            
+            if (screenId === 'screen-home') {
+                homeBtn.style.display = 'none';
+                title.innerText = "HUFS Persian";
             } else {
-                updateContent();
+                homeBtn.style.display = 'block';
+                title.innerText = (screenId === 'screen-study') ? "학습 중..." : "챕터 선택";
             }
         }
 
-        function updateContent() {
-            // 랜덤으로 뽑기
-            const randomIndex = Math.floor(Math.random() * vocaData.length);
-            const data = vocaData[randomIndex];
-            
-            wordDisp.innerText = data.w;
-            meanDisp.innerText = data.m;
+        function goHome() {
+            showScreen('screen-home');
         }
 
-        // [PWA] 아이폰인지 감지해서 설치 배너 띄우기
+        // 2. 챕터 선택 화면 생성
+        function showChapterSelect() {
+            const listContainer = document.getElementById('chapter-list');
+            listContainer.innerHTML = ""; // 초기화
+
+            // DB에서 챕터 번호만 뽑아서 중복 제거 (예: [1, 2, 3])
+            const chapters = [...new Set(vocaDB.map(item => item.ch))].sort((a,b)=>a-b);
+
+            chapters.forEach(ch => {
+                const btn = document.createElement('button');
+                btn.className = 'menu-btn';
+                btn.innerHTML = `<span>📖 Chapter ${ch}</span> <i class="fas fa-chevron-right"></i>`;
+                btn.onclick = () => startStudy(ch);
+                listContainer.appendChild(btn);
+            });
+
+            showScreen('screen-chapter');
+        }
+
+        // 3. 학습 시작 (데이터 필터링)
+        function startStudy(mode) {
+            if (mode === 'all') {
+                currentList = [...vocaDB]; // 전체 복사
+            } else {
+                currentList = vocaDB.filter(item => item.ch === mode); // 해당 챕터만
+            }
+
+            // 배열 섞기 (셔플)
+            currentList.sort(() => Math.random() - 0.5);
+
+            if (currentList.length === 0) {
+                alert("등록된 단어가 없습니다!");
+                return;
+            }
+
+            nextWord(); // 첫 단어 로드
+            showScreen('screen-study');
+        }
+
+        // 4. 플래시카드 기능
+        function flipCard() {
+            document.querySelector('.card-container').classList.toggle('flipped');
+        }
+
+        function nextWord() {
+            const card = document.querySelector('.card-container');
+            
+            // 카드 뒤집혀있으면 원상복구 후 내용 변경
+            if (card.classList.contains('flipped')) {
+                card.classList.remove('flipped');
+                setTimeout(loadRandomWord, 300);
+            } else {
+                loadRandomWord();
+            }
+        }
+
+        function loadRandomWord() {
+            // 그냥 무한 랜덤 (순서대로 하고 싶으면 로직 변경 가능)
+            const randomItem = currentList[Math.floor(Math.random() * currentList.length)];
+            
+            document.getElementById('card-chapter').innerText = `Ch.${randomItem.ch}`;
+            document.getElementById('word-display').innerText = randomItem.w;
+            document.getElementById('mean-display').innerText = randomItem.m;
+        }
+
+        // 5. 아이폰 설치 배너
         const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
         const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
-
-        // 아이폰이면서 + 홈화면에서 실행한 게 아닐 때만 배너 표시
         if (isIos && !isInStandaloneMode) {
-            document.getElementById('install-banner').style.display = 'block';
+            document.getElementById('install-banner').style.display = 'flex';
         }
-
     </script>
 </body>
 </html>
