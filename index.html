@@ -9,9 +9,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #005BAA; /* 외대 청색 */
-            --accent-color: #FF8c00;  /* 포인트 오렌지 */
+            --primary-color: #005BAA;
+            --accent-color: #FF8c00;
             --bg-color: #f0f2f5;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
         }
 
         body {
@@ -19,33 +21,36 @@
             background-color: var(--bg-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            user-select: none;
         }
 
-        /* 공통 헤더 */
+        /* 헤더 */
         header {
             background: var(--primary-color);
             color: white; padding: 15px; text-align: center;
             font-weight: bold; font-size: 1.1rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 10;
+            position: relative; z-index: 10;
         }
-        .home-btn {
-            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-            cursor: pointer; font-size: 1.2rem; display: none; /* 홈에서는 안 보임 */
+        .header-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            cursor: pointer; font-size: 1.2rem; color: white;
+            background: none; border: none; padding: 10px;
         }
+        .left-btn { left: 10px; display: none; }
+        .right-btn { right: 10px; }
 
-        /* 화면 컨테이너 (페이지 전환 효과용) */
+        /* 화면 공통 */
         .screen {
-            flex: 1; display: none; /* 기본적으로 숨김 */
+            flex: 1; display: none;
             flex-direction: column; align-items: center; justify-content: center;
             padding: 20px; overflow-y: auto;
         }
-        .screen.active { display: flex; } /* 활성화된 화면만 보임 */
+        .screen.active { display: flex; }
 
-        /* [홈 화면] 메뉴 버튼들 */
+        /* 메뉴 버튼 */
         .menu-btn {
-            width: 100%; max-width: 300px; padding: 20px; margin: 10px 0;
+            width: 100%; max-width: 320px; padding: 20px; margin: 8px 0;
             border: none; border-radius: 15px;
             background: white; color: #333;
             font-size: 1.1rem; font-weight: bold;
@@ -56,7 +61,37 @@
         .menu-btn:active { transform: scale(0.98); background: #f8f9fa; }
         .menu-btn i { font-size: 1.5rem; color: var(--primary-color); }
 
-        /* [학습 화면] 플래시카드 */
+        /* 입력 폼 스타일 */
+        .input-group { width: 100%; max-width: 320px; margin-bottom: 15px; }
+        .input-label { display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .input-field, select.input-field { 
+            width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; 
+            font-size: 1rem; box-sizing: border-box; background: white;
+        }
+        .input-field:focus { outline: none; border-color: var(--primary-color); }
+        
+        /* 파일 업로드 버튼 */
+        .file-upload-wrapper {
+            width: 100%; max-width: 320px; border: 2px dashed #005BAA; border-radius: 15px;
+            padding: 30px; text-align: center; background: #f0f7ff; cursor: pointer; margin-bottom: 20px;
+        }
+        .file-upload-wrapper:active { background: #e0efff; }
+
+        /* 탭 버튼 */
+        .tab-box { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 320px; }
+        .tab-btn { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 10px; cursor: pointer; color: #888; }
+        .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); font-weight: bold; }
+
+        /* 버튼 공통 */
+        .action-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-weight: bold; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 5px;
+        }
+        .btn-blue { background: var(--primary-color); color: white; }
+        .btn-orange { background: var(--accent-color); color: white; }
+
+        /* 카드 스타일 */
         .card-container {
             width: 100%; max-width: 350px; height: 380px;
             position: relative; perspective: 1000px; cursor: pointer;
@@ -68,222 +103,685 @@
             border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         .card-container.flipped .card-inner { transform: rotateY(180deg); }
-        
         .card-face {
             position: absolute; width: 100%; height: 100%;
             backface-visibility: hidden; border-radius: 20px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: white; text-align: center;
+            background: white; text-align: center; padding: 20px; box-sizing: border-box;
         }
         .card-front { color: var(--primary-color); }
         .card-back { background: var(--primary-color); color: white; transform: rotateY(180deg); }
+        
+        .persian-text { font-size: 3.5rem; font-weight: bold; margin-bottom: 15px; line-height: 1.2;}
+        .pronun-text { font-size: 1.3rem; color: #ffdf7e; font-style: italic; margin-bottom: 10px; font-weight: 500;}
+        .korean-text { font-size: 1.8rem; font-weight: bold; word-break: keep-all; line-height: 1.4;}
+        
+        .control-box { display: flex; gap: 10px; width: 100%; max-width: 350px; }
+        .btn-check { flex:1; background: white; color: #999; border: 2px solid #eee; padding: 15px; border-radius: 12px; font-weight: bold;}
+        .btn-check.checked { background: var(--success-color); color: white; border-color: var(--success-color); }
+        .btn-next { flex:1; background: var(--accent-color); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .persian-text { font-size: 2.8rem; font-weight: bold; margin-bottom: 10px; }
-        .korean-text { font-size: 1.6rem; font-weight: bold; padding: 0 20px; word-break: keep-all;}
-        .chapter-badge {
-            position: absolute; top: 15px; left: 15px;
-            background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 10px;
-            font-size: 0.8rem; color: #666;
+        /* 게임 스타일 */
+        .game-progress { width: 100%; max-width: 350px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: bold; color: #666; }
+        .quiz-word { font-size: 3.5rem; color: var(--primary-color); font-weight: bold; margin: 20px 0; }
+        .options-grid { width: 100%; max-width: 350px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-btn {
+            padding: 20px 10px; background: white; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: bold; color: #444;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;
+            min-height: 80px; display: flex; align-items: center; justify-content: center;
+            word-break: keep-all; transition: 0.1s;
         }
+        .option-btn:active { transform: scale(0.95); }
+        .option-btn.correct { background: var(--success-color) !important; color: white !important; animation: pop 0.3s; }
+        .option-btn.wrong { background: var(--error-color) !important; color: white !important; animation: shake 0.3s; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
 
-        /* 컨트롤 버튼 */
-        .control-box { display: flex; gap: 15px; width: 100%; max-width: 350px; }
-        .action-btn {
-            flex: 1; padding: 15px; border: none; border-radius: 12px;
-            font-weight: bold; font-size: 1rem; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .btn-next { background: var(--accent-color); color: white; }
+        .chapter-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; color: #666; }
 
-        /* 설치 배너 */
-        #install-banner {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(30,30,30,0.9); color: white;
-            padding: 15px 20px; font-size: 0.9rem; box-sizing: border-box;
-            display: none; z-index: 1000; justify-content: space-between; align-items: center;
+        /* 모달 (팝업) */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); display: none;
+            justify-content: center; align-items: center; z-index: 100;
         }
+        .modal-box { background: white; padding: 25px; border-radius: 15px; text-align: center; width: 85%; max-width: 320px; }
     </style>
 </head>
 <body>
 
     <header>
-        <i class="fas fa-chevron-left home-btn" onclick="goHome()"></i>
+        <button class="header-btn left-btn home-btn" onclick="goHome()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
         <span id="header-title">HUFS Persian</span>
+        <button class="header-btn right-btn" onclick="toggleSetting()">
+            <i class="fas fa-cog"></i>
+        </button>
     </header>
 
     <div id="screen-home" class="screen active">
-        <div style="text-align: center; margin-bottom: 30px;">
+        <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #333; margin:0;">오늘의 학습</h2>
-            <p style="color: #666;">공부할 모드를 선택하세요</p>
+            <p id="progress-info" style="font-size:0.9rem; color:var(--primary-color); font-weight:bold; margin-top:5px;"></p>
         </div>
 
-        <button class="menu-btn" onclick="startStudy('all')">
-            <span>🎲 전체 랜덤 학습</span>
+        <button class="menu-btn" onclick="setModeAndGo('study', 'all')">
+            <div>
+                <span>🎲 전체 랜덤 학습</span>
+                <small>기본 단어 + 내 단어장</small>
+            </div>
             <i class="fas fa-random"></i>
         </button>
 
-        <button class="menu-btn" onclick="showChapterSelect()">
-            <span>📚 챕터별 학습</span>
-            <i class="fas fa-list-ul"></i>
+        <button class="menu-btn" onclick="showChapterSelect('study')">
+             <div>
+                <span>📚 챕터별 학습</span>
+                <small>범위 선택 공부</small>
+            </div>
+            <i class="fas fa-book-open"></i>
         </button>
+
+        <button class="menu-btn" onclick="confirmGameStart()" style="border: 2px solid var(--accent-color);">
+            <div>
+                <span style="color:var(--accent-color)">🎮 스피드 퀴즈</span>
+                <small>4지 선다형 게임</small>
+            </div>
+            <i class="fas fa-gamepad" style="color:var(--accent-color)"></i>
+        </button>
+
+        <button class="menu-btn" onclick="showAddScreen()" style="background:#f0f7ff; border:1px dashed #005BAA;">
+            <div>
+                <span style="color:#005BAA">📥 단어 추가</span>
+                <small>직접 입력 or 파일 업로드</small>
+            </div>
+            <i class="fas fa-plus-circle" style="color:#005BAA"></i>
+        </button>
+    </div>
+
+    <div id="screen-add" class="screen">
+        <h3>단어 추가하기</h3>
         
-        <button class="menu-btn" style="opacity: 0.6; cursor: not-allowed;">
-            <span>🎮 스피드 게임 (준비중)</span>
-            <i class="fas fa-gamepad"></i>
-        </button>
+        <div class="tab-box">
+            <button class="tab-btn active" onclick="switchTab('manual')">직접 입력</button>
+            <button class="tab-btn" onclick="switchTab('file')">파일(CSV)</button>
+        </div>
+
+        <div id="form-manual" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <div class="input-group">
+                <label class="input-label">챕터(폴더) 선택</label>
+                <select id="chap-select" class="input-field" onchange="checkNewChap(this)">
+                    </select>
+                <input type="text" id="chap-new-input" class="input-field" style="display:none; margin-top:5px;" placeholder="새 폴더 이름 입력">
+            </div>
+            <div class="input-group">
+                <label class="input-label">페르시아어 (Script)</label>
+                <input type="text" id="input-word" class="input-field" placeholder="예: سلام">
+            </div>
+            <div class="input-group">
+                <label class="input-label">발음 (Pronunciation)</label>
+                <input type="text" id="input-pron" class="input-field" placeholder="예: Salam">
+            </div>
+            <div class="input-group">
+                <label class="input-label">한국어 뜻</label>
+                <input type="text" id="input-mean" class="input-field" placeholder="예: 안녕하세요">
+            </div>
+            <button class="action-btn btn-blue" onclick="addManual()">추가하기</button>
+        </div>
+
+        <div id="form-file" style="width:100%; display:none; flex-direction:column; align-items:center;">
+            <div class="file-upload-wrapper" onclick="document.getElementById('file-input').click()">
+                <i class="fas fa-file-upload" style="font-size:2rem; color:#005BAA;"></i>
+                <p style="margin:10px 0 0; color:#666;">터치해서 파일(CSV) 선택</p>
+                <small style="color:#999; display:block; margin-top:5px;">형식: 페르시아어,발음,뜻,챕터(선택)</small>
+            </div>
+            <input type="file" id="file-input" style="display:none;" accept=".csv, .txt" onchange="handleFileUpload(this)">
+            
+            <div id="file-result" style="margin-bottom:20px; color:#005BAA; font-weight:bold;"></div>
+            <button class="action-btn btn-blue" onclick="processFile()">등록하기</button>
+        </div>
     </div>
 
     <div id="screen-chapter" class="screen">
-        <h3>챕터를 선택하세요</h3>
-        <div id="chapter-list" style="width: 100%; max-width: 300px;">
-            </div>
+        <h3 id="chapter-title">범위를 선택하세요</h3>
+        <div id="chapter-list" style="width: 100%; max-width: 300px;"></div>
     </div>
 
     <div id="screen-study" class="screen">
-        <div class="card-container" onclick="flipCard()">
-            <div class="card-inner" id="card-inner">
-                <div class="card-face card-front">
-                    <div class="chapter-badge" id="card-chapter">Ch.1</div>
-                    <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 20px;">Touch to Flip 👆</div>
-                    <div class="persian-text" id="word-display">Ready</div>
-                </div>
-                <div class="card-face card-back">
-                    <div class="korean-text" id="mean-display">시작</div>
+        <div id="study-area" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <div class="card-container" onclick="flipCard()">
+                <div class="card-inner" id="card-inner">
+                    <div class="card-face card-front">
+                        <div class="chapter-badge" id="card-chapter">Ch.1</div>
+                        <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 20px;">Touch to Flip 👆</div>
+                        <div class="persian-text" id="word-display">Ready</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="pronun-text" id="pron-display">[Pronunciation]</div>
+                        <div class="korean-text" id="mean-display">시작</div>
+                    </div>
                 </div>
             </div>
+            <div class="control-box">
+                <button id="btn-memorize" class="btn-check" onclick="toggleMemorize(event)">
+                    <i class="far fa-check-circle"></i> 외웠어요
+                </button>
+                <button class="btn-next" onclick="nextWord()">다음 👉</button>
+            </div>
         </div>
-
-        <div class="control-box">
-            <button class="action-btn" style="background:white; color:#666;" onclick="flipCard()">정답 보기</button>
-            <button class="action-btn btn-next" onclick="nextWord()">다음 단어 👉</button>
+        <div id="study-clear-msg" style="text-align:center; display:none;">
+            <i class="fas fa-medal" style="font-size:4rem; color:var(--success-color);"></i>
+            <h2>학습 완료!</h2>
+            <p>선택한 범위의 단어를 모두 봤습니다.</p>
+            <button class="action-btn btn-blue" onclick="goHome()" style="width:200px; margin-top:20px;">홈으로</button>
         </div>
     </div>
 
-    <div id="install-banner">
-        <span>앱으로 사용하려면? [공유] > [홈 화면에 추가]</span>
-        <span onclick="this.parentElement.style.display='none'" style="cursor:pointer; font-size:1.2rem;">✖</span>
+    <div id="screen-game" class="screen">
+        <div class="game-progress">
+            <span id="game-score-badge">🏆 0점</span>
+            <span id="game-q-count">Q. 1 / 10</span>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%;">
+            <div class="quiz-word" id="quiz-word">Salam</div>
+            <button onclick="showHint()" style="border:none; background:none; color:#888; margin-bottom:20px; cursor:pointer;">
+                <i class="fas fa-eye"></i> 발음 힌트 보기
+            </button>
+            <div id="quiz-pron-hint" style="color:var(--accent-color); margin-bottom:20px; font-weight:bold; display:none;"></div>
+            
+            <div class="options-grid" id="options-container"></div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div style="text-align:center;">
+            <h2 style="margin:0;">Game Over</h2>
+            <div style="font-size:4rem; font-weight:bold; color:var(--accent-color); margin:10px 0;" id="final-score">0</div>
+            <p>총 10문제 중 <span id="final-correct-cnt">0</span>개 정답</p>
+            <div style="margin-top:30px; display:flex; flex-direction:column; gap:10px;">
+                <button class="action-btn btn-orange" onclick="confirmGameStart()">다시 하기</button>
+                <button class="action-btn" onclick="goHome()" style="background:#ddd;">홈으로</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-option-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>게임 옵션 선택</h3>
+            <p>어떤 단어로 게임을 할까요?</p>
+            <button class="action-btn btn-blue" onclick="selectGameOption(false)">🔄 복습 모드 <br><small style="font-weight:normal; font-size:0.8rem;">(모든 단어 출제)</small></button>
+            <button class="action-btn btn-orange" onclick="selectGameOption(true)">🔥 하드코어 모드 <br><small style="font-weight:normal; font-size:0.8rem;">(안 외운 것만 출제)</small></button>
+            <button class="action-btn" style="background:white; color:#999; margin-top:10px;" onclick="document.getElementById('game-option-modal').style.display='none'">취소</button>
+        </div>
+    </div>
+
+    <div id="setting-modal" class="modal-overlay" onclick="closeSetting(event)">
+        <div class="modal-box">
+            <h3>설정</h3>
+            <button class="action-btn" style="background:#005BAA; color:white; margin-bottom:10px;" onclick="exportCSV()">💾 내 단어장 다운로드 (백업)</button>
+            <button class="action-btn" style="background:#ff9f43; color:white; margin-bottom:10px;" onclick="resetCustomData()">🗑️ 내 단어장 비우기</button>
+            <button class="action-btn" style="background:#ff6b6b; color:white; margin-bottom:10px;" onclick="resetData()">↺ 암기 기록 초기화</button>
+            <button class="action-btn" style="background:#eee;" onclick="document.getElementById('setting-modal').style.display='none'">닫기</button>
+        </div>
     </div>
 
     <script>
         // ==========================================
-        // [데이터베이스] 여기에 단어를 쭉~ 추가하세요!
+        // [0] 초기 데이터 (Static DB) - 배포 전 수정 필수!
         // ==========================================
-        const vocaDB = [
-            // 챕터 1
-            { ch: 1, w: "Salam", m: "안녕하세요" },
-            { ch: 1, w: "Befarmaid", m: "여기요 / 들어오세요" },
-            { ch: 1, w: "Khoda hafez", m: "안녕히 가세요" },
-            
-            // 챕터 2
-            { ch: 2, w: "Sefid", m: "흰색" },
-            { ch: 2, w: "Siah", m: "검은색" },
-            { ch: 2, w: "Ghermez", m: "빨간색" },
-
-            // 챕터 3
-            { ch: 3, w: "Arzan", m: "저렴한" },
-            { ch: 3, w: "Geran", m: "비싼" },
-            { ch: 3, w: "Khob", m: "좋은" }
+        const staticDB = [
+            { id: 1, ch: "1과", w: "سلام", p: "Salam", m: "안녕하세요" },
+            { id: 2, ch: "1과", w: "بفرمایید", p: "Befarmaid", m: "여기요 / 들어오세요" },
+            { id: 3, ch: "1과", w: "خداحافظ", p: "Khoda hafez", m: "안녕히 가세요" },
+            { id: 4, ch: "1과", w: "مرسی", p: "Merci", m: "고맙습니다" },
+            { id: 5, ch: "2과", w: "سفید", p: "Sefid", m: "흰색" },
+            { id: 6, ch: "2과", w: "سیاه", p: "Siah", m: "검은색" },
+            { id: 7, ch: "2과", w: "قرمز", p: "Ghermez", m: "빨간색" },
+            { id: 8, ch: "2과", w: "آبی", p: "Abi", m: "파란색" },
+            { id: 9, ch: "3과", w: "ارزان", p: "Arzan", m: "저렴한" },
+            { id: 10, ch: "3과", w: "گران", p: "Geran", m: "비싼" },
+            { id: 11, ch: "3과", w: "خوب", p: "Khob", m: "좋은" },
+            { id: 12, ch: "3과", w: "بد", p: "Bad", m: "나쁜" }
         ];
 
         // ==========================================
-        // [로직] 기능 구현
+        // [1] 데이터 관리
         // ==========================================
-        let currentList = [];
-        let currentIndex = 0;
+        const MEMO_KEY = 'hufs_persian_memo';
+        const CUSTOM_KEY = 'hufs_persian_custom_db';
 
-        // 1. 화면 전환 함수
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
+        let memorizedList = JSON.parse(localStorage.getItem(MEMO_KEY)) || [];
+        let customDB = JSON.parse(localStorage.getItem(CUSTOM_KEY)) || [];
 
-            // 홈 버튼 표시 여부
-            const homeBtn = document.querySelector('.home-btn');
-            const title = document.getElementById('header-title');
-            
-            if (screenId === 'screen-home') {
-                homeBtn.style.display = 'none';
-                title.innerText = "HUFS Persian";
+        function getAllWords() { return [...staticDB, ...customDB]; }
+
+        function getChapters() {
+            const allWords = getAllWords();
+            const chapters = [...new Set(allWords.map(item => item.ch))];
+            return chapters.sort((a,b) => a.toString().localeCompare(b.toString()));
+        }
+
+        // ==========================================
+        // [2] 단어 추가 (3단 데이터: W, P, M)
+        // ==========================================
+        function showAddScreen() {
+            showScreen('screen-add');
+            updateChapSelectOptions();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if(tabName==='manual') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('form-manual').style.display = 'flex';
+                document.getElementById('form-file').style.display = 'none';
             } else {
-                homeBtn.style.display = 'block';
-                title.innerText = (screenId === 'screen-study') ? "학습 중..." : "챕터 선택";
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('form-manual').style.display = 'none';
+                document.getElementById('form-file').style.display = 'flex';
             }
         }
 
-        function goHome() {
-            showScreen('screen-home');
+        function updateChapSelectOptions() {
+            const select = document.getElementById('chap-select');
+            select.innerHTML = '';
+            
+            const chapters = getChapters();
+            chapters.forEach(ch => {
+                const opt = document.createElement('option');
+                opt.value = ch;
+                opt.innerText = ch;
+                select.appendChild(opt);
+            });
+            const newOpt = document.createElement('option');
+            newOpt.value = 'NEW_FOLDER_OPTION';
+            newOpt.innerText = '+ 새 폴더 만들기';
+            select.appendChild(newOpt);
+            
+            document.getElementById('chap-new-input').style.display = 'none';
         }
 
-        // 2. 챕터 선택 화면 생성
-        function showChapterSelect() {
-            const listContainer = document.getElementById('chapter-list');
-            listContainer.innerHTML = ""; // 초기화
+        function checkNewChap(select) {
+            const input = document.getElementById('chap-new-input');
+            if(select.value === 'NEW_FOLDER_OPTION') {
+                input.style.display = 'block';
+                input.focus();
+            } else {
+                input.style.display = 'none';
+            }
+        }
 
-            // DB에서 챕터 번호만 뽑아서 중복 제거 (예: [1, 2, 3])
-            const chapters = [...new Set(vocaDB.map(item => item.ch))].sort((a,b)=>a-b);
+        function addManual() {
+            const w = document.getElementById('input-word').value.trim();
+            const p = document.getElementById('input-pron').value.trim();
+            const m = document.getElementById('input-mean').value.trim();
+            const selectVal = document.getElementById('chap-select').value;
+            let ch = selectVal;
 
-            chapters.forEach(ch => {
-                const btn = document.createElement('button');
-                btn.className = 'menu-btn';
-                btn.innerHTML = `<span>📖 Chapter ${ch}</span> <i class="fas fa-chevron-right"></i>`;
-                btn.onclick = () => startStudy(ch);
-                listContainer.appendChild(btn);
+            if(selectVal === 'NEW_FOLDER_OPTION') {
+                ch = document.getElementById('chap-new-input').value.trim();
+                if(!ch) { alert("폴더 이름을 입력해주세요."); return; }
+            }
+
+            if(!w || !m) { alert('단어와 뜻은 필수입니다!'); return; }
+
+            customDB.push({ id: Date.now(), ch: ch, w: w, p: p, m: m });
+            localStorage.setItem(CUSTOM_KEY, JSON.stringify(customDB));
+            
+            alert(`[${ch}]에 추가되었습니다!`);
+            document.getElementById('input-word').value = '';
+            document.getElementById('input-pron').value = '';
+            document.getElementById('input-mean').value = '';
+            updateChapSelectOptions();
+        }
+
+        // CSV 업로드 처리
+        let pendingFileText = null;
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                pendingFileText = e.target.result;
+                document.getElementById('file-result').innerText = `📄 ${file.name} (준비완료)`;
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function processFile() {
+            if(!pendingFileText) { alert("파일을 선택해주세요."); return; }
+
+            const lines = pendingFileText.split('\n');
+            let count = 0;
+            
+            lines.forEach((line, idx) => {
+                const parts = line.split(',');
+                // CSV 형식: 단어,발음,뜻,[챕터]
+                if(parts.length >= 3) {
+                    const w = parts[0].trim();
+                    const p = parts[1].trim();
+                    const m = parts[2].trim();
+                    const ch = (parts[3] && parts[3].trim()) ? parts[3].trim() : "내 단어장";
+                    
+                    if(w && m) {
+                        customDB.push({ id: Date.now() + idx, ch: ch, w: w, p: p, m: m });
+                        count++;
+                    }
+                }
             });
 
+            if(count > 0) {
+                localStorage.setItem(CUSTOM_KEY, JSON.stringify(customDB));
+                alert(`${count}개 단어가 추가되었습니다!`);
+                document.getElementById('file-input').value = '';
+                document.getElementById('file-result').innerText = '';
+                pendingFileText = null;
+                goHome();
+            } else {
+                alert("형식 오류: [페르시아어,발음,뜻] 순서가 맞는지 확인하세요.");
+            }
+        }
+
+        // ==========================================
+        // [3] 게임 모드
+        // ==========================================
+        let gameExcludeMemorized = false;
+
+        function confirmGameStart() {
+            document.getElementById('game-option-modal').style.display = 'flex';
+        }
+
+        function selectGameOption(isHardcore) {
+            gameExcludeMemorized = isHardcore;
+            document.getElementById('game-option-modal').style.display = 'none';
+            showChapterSelect('game');
+        }
+
+        // ==========================================
+        // [4] 학습/게임 로직
+        // ==========================================
+        let currentMode = '';
+        let targetChapter = 'all';
+        let studyQueue = [];
+        let currentStudyWord = null;
+        let gameQueue = [];
+        let gameScore = 0;
+        let gameCount = 0;
+        let gameTotalQ = 10;
+        let isAnswerChecking = false;
+
+        function showChapterSelect(mode) {
+            currentMode = mode;
+            const listContainer = document.getElementById('chapter-list');
+            listContainer.innerHTML = "";
+            document.getElementById('chapter-title').innerText = (mode === 'game') ? "게임 범위 선택" : "학습 범위 선택";
+
+            const fullDB = getAllWords();
+            const chapters = getChapters();
+
+            if(mode === 'game') {
+                const allBtn = document.createElement('button');
+                allBtn.className = 'menu-btn';
+                allBtn.innerHTML = `<div><span>🎲 전체 범위</span></div><i class="fas fa-chevron-right"></i>`;
+                allBtn.onclick = () => setModeAndGo(mode, 'all');
+                listContainer.appendChild(allBtn);
+            }
+
+            chapters.forEach(ch => {
+                const total = fullDB.filter(i => i.ch === ch).length;
+                const done = fullDB.filter(i => i.ch === ch && memorizedList.includes(i.id)).length;
+                
+                const btn = document.createElement('button');
+                btn.className = 'menu-btn';
+                btn.innerHTML = `
+                    <div style="text-align:left;">
+                        <span>📖 ${ch}</span>
+                        ${mode === 'study' ? `<small style="color:${done===total?'#2ecc71':'#888'}">진도율: ${done}/${total}</small>` : ''}
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                `;
+                btn.onclick = () => setModeAndGo(mode, ch);
+                listContainer.appendChild(btn);
+            });
             showScreen('screen-chapter');
         }
 
-        // 3. 학습 시작 (데이터 필터링)
-        function startStudy(mode) {
-            if (mode === 'all') {
-                currentList = [...vocaDB]; // 전체 복사
-            } else {
-                currentList = vocaDB.filter(item => item.ch === mode); // 해당 챕터만
-            }
-
-            // 배열 섞기 (셔플)
-            currentList.sort(() => Math.random() - 0.5);
-
-            if (currentList.length === 0) {
-                alert("등록된 단어가 없습니다!");
-                return;
-            }
-
-            nextWord(); // 첫 단어 로드
-            showScreen('screen-study');
+        function setModeAndGo(mode, chapter) {
+            targetChapter = chapter;
+            if (mode === 'study') startStudy();
+            else startGame();
         }
 
-        // 4. 플래시카드 기능
-        function flipCard() {
-            document.querySelector('.card-container').classList.toggle('flipped');
+        function startStudy() {
+            const fullDB = getAllWords();
+            let list = (targetChapter === 'all') ? fullDB : fullDB.filter(i => i.ch === targetChapter);
+            studyQueue = list.filter(item => !memorizedList.includes(item.id));
+            
+            document.getElementById('study-area').style.display = 'flex';
+            document.getElementById('study-clear-msg').style.display = 'none';
+
+            if (studyQueue.length === 0) {
+                showScreen('screen-study');
+                document.getElementById('study-area').style.display = 'none';
+                document.getElementById('study-clear-msg').style.display = 'block';
+            } else {
+                studyQueue.sort(() => Math.random() - 0.5);
+                showScreen('screen-study');
+                nextWord();
+            }
         }
 
         function nextWord() {
             const card = document.querySelector('.card-container');
-            
-            // 카드 뒤집혀있으면 원상복구 후 내용 변경
-            if (card.classList.contains('flipped')) {
-                card.classList.remove('flipped');
-                setTimeout(loadRandomWord, 300);
+            if (card.classList.contains('flipped')) card.classList.remove('flipped');
+            setTimeout(() => {
+                if (studyQueue.length === 0) {
+                    document.getElementById('study-area').style.display = 'none';
+                    document.getElementById('study-clear-msg').style.display = 'block';
+                    return;
+                }
+                const randIdx = Math.floor(Math.random() * studyQueue.length);
+                currentStudyWord = studyQueue[randIdx];
+                
+                document.getElementById('card-chapter').innerText = currentStudyWord.ch;
+                document.getElementById('word-display').innerText = currentStudyWord.w; // 페르시아어
+                document.getElementById('pron-display').innerText = `[${currentStudyWord.p || ''}]`; // 발음
+                document.getElementById('mean-display').innerText = currentStudyWord.m; // 뜻
+                updateCheckButton(false);
+            }, 300);
+        }
+
+        function toggleMemorize(e) {
+            e.stopPropagation();
+            if (!currentStudyWord) return;
+            memorizedList.push(currentStudyWord.id);
+            localStorage.setItem(MEMO_KEY, JSON.stringify(memorizedList));
+            updateCheckButton(true);
+            studyQueue = studyQueue.filter(i => i.id !== currentStudyWord.id);
+            setTimeout(nextWord, 500);
+        }
+
+        function updateCheckButton(isChecked) {
+            const btn = document.getElementById('btn-memorize');
+            if (isChecked) {
+                btn.classList.add('checked');
+                btn.innerHTML = `<i class="fas fa-check-circle"></i> 암기 완료!`;
             } else {
-                loadRandomWord();
+                btn.classList.remove('checked');
+                btn.innerHTML = `<i class="far fa-check-circle"></i> 외웠어요`;
             }
         }
 
-        function loadRandomWord() {
-            // 그냥 무한 랜덤 (순서대로 하고 싶으면 로직 변경 가능)
-            const randomItem = currentList[Math.floor(Math.random() * currentList.length)];
-            
-            document.getElementById('card-chapter').innerText = `Ch.${randomItem.ch}`;
-            document.getElementById('word-display').innerText = randomItem.w;
-            document.getElementById('mean-display').innerText = randomItem.m;
+        function startGame() {
+            const fullDB = getAllWords();
+            let list = (targetChapter === 'all') ? fullDB : fullDB.filter(i => i.ch === targetChapter);
+
+            if (gameExcludeMemorized) {
+                list = list.filter(item => !memorizedList.includes(item.id));
+            }
+
+            if (list.length < 4) {
+                alert("게임 할 단어가 부족합니다! (최소 4개 필요)");
+                return;
+            }
+
+            gameQueue = [...list].sort(() => Math.random() - 0.5);
+            gameScore = 0;
+            gameCount = 0;
+            gameTotalQ = Math.min(10, list.length);
+
+            showScreen('screen-game');
+            nextQuestion();
         }
 
-        // 5. 아이폰 설치 배너
-        const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
-        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
-        if (isIos && !isInStandaloneMode) {
-            document.getElementById('install-banner').style.display = 'flex';
+        function nextQuestion() {
+            if (gameCount >= gameTotalQ) { endGame(); return; }
+            gameCount++;
+            document.getElementById('game-score-badge').innerText = `🏆 ${gameScore * 10}점`;
+            document.getElementById('game-q-count').innerText = `Q. ${gameCount} / ${gameTotalQ}`;
+            document.getElementById('options-container').innerHTML = '';
+            document.getElementById('quiz-pron-hint').style.display = 'none'; // 힌트 숨김
+
+            if (gameQueue.length === 0) {
+                 const fullDB = getAllWords();
+                 let list = (targetChapter === 'all') ? fullDB : fullDB.filter(i => i.ch === targetChapter);
+                 if (gameExcludeMemorized) list = list.filter(item => !memorizedList.includes(item.id));
+                 gameQueue = [...list].sort(() => Math.random() - 0.5);
+            }
+            const answer = gameQueue.pop();
+
+            // 힌트 세팅
+            document.getElementById('quiz-pron-hint').innerText = answer.p;
+
+            // 보기 생성
+            let options = [answer];
+            const fullDB = getAllWords();
+            let wrongCandidates = fullDB.filter(i => i.id !== answer.id);
+            wrongCandidates.sort(() => Math.random() - 0.5);
+            options.push(...wrongCandidates.slice(0, 3));
+            options.sort(() => Math.random() - 0.5);
+
+            document.getElementById('quiz-word').innerText = answer.w;
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.m;
+                btn.onclick = () => checkAnswer(btn, opt.id, answer.id);
+                document.getElementById('options-container').appendChild(btn);
+            });
         }
+
+        function showHint() {
+            document.getElementById('quiz-pron-hint').style.display = 'block';
+        }
+
+        function checkAnswer(btn, selectedId, correctId) {
+            if (isAnswerChecking) return;
+            isAnswerChecking = true;
+            if (selectedId === correctId) {
+                btn.classList.add('correct');
+                gameScore++;
+            } else {
+                btn.classList.add('wrong');
+            }
+            setTimeout(() => {
+                isAnswerChecking = false;
+                nextQuestion();
+            }, 800);
+        }
+
+        function endGame() {
+            showScreen('screen-result');
+            document.getElementById('final-score').innerText = gameScore * 10;
+            document.getElementById('final-correct-cnt').innerText = gameScore;
+        }
+
+        // ==========================================
+        // [5] 설정 및 데이터 내보내기 (Export)
+        // ==========================================
+        function exportCSV() {
+            if (customDB.length === 0) {
+                alert("다운로드할 내 단어장이 비어있습니다.");
+                return;
+            }
+            // CSV 내용 생성 (형식: 단어,발음,뜻,챕터)
+            let csvContent = "\uFEFF"; 
+            customDB.forEach(item => {
+                csvContent += `${item.w},${item.p},${item.m},${item.ch}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            const date = new Date();
+            const dateStr = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate();
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `My_Persian_Words_${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function flipCard() { document.querySelector('.card-container').classList.toggle('flipped'); }
+        function updateProgressInfo() {
+            const fullDB = getAllWords();
+            const total = fullDB.length;
+            const done = memorizedList.length;
+            const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+            document.getElementById('progress-info').innerText = `총 암기율: ${percent}% (${done}/${total})`;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            const homeBtn = document.querySelector('.home-btn');
+            const settingBtn = document.querySelector('.right-btn');
+            const title = document.getElementById('header-title');
+            
+            if (screenId === 'screen-home') {
+                homeBtn.style.display = 'none';
+                settingBtn.style.display = 'block';
+                title.innerText = "HUFS Persian";
+                updateProgressInfo();
+            } else if (screenId === 'screen-add') {
+                homeBtn.style.display = 'block';
+                settingBtn.style.display = 'none';
+                title.innerText = "단어 추가";
+            } else {
+                homeBtn.style.display = 'block';
+                settingBtn.style.display = 'none';
+                title.innerText = (screenId.includes('game')) ? "Speed Quiz" : "학습 모드";
+            }
+        }
+        function goHome() { showScreen('screen-home'); }
+        function toggleSetting() { document.getElementById('setting-modal').style.display = 'flex'; }
+        function closeSetting(e) { if (e.target.id === 'setting-modal') document.getElementById('setting-modal').style.display = 'none'; }
+        
+        function resetCustomData() {
+            if(confirm("내가 추가한 단어를 모두 삭제하시겠습니까?")) {
+                customDB = [];
+                localStorage.removeItem(CUSTOM_KEY);
+                alert("삭제되었습니다.");
+                document.getElementById('setting-modal').style.display = 'none';
+                goHome();
+            }
+        }
+        function resetData() {
+            if(confirm("암기 체크 기록을 초기화하시겠습니까?")) {
+                memorizedList = [];
+                localStorage.setItem(MEMO_KEY, JSON.stringify(memorizedList));
+                alert("초기화되었습니다.");
+                document.getElementById('setting-modal').style.display = 'none';
+                goHome();
+            }
+        }
+        
+        // 초기 실행
+        updateProgressInfo();
     </script>
 </body>
 </html>
